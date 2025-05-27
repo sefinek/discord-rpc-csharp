@@ -1,7 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net8.0-windows10.0.26100.0</TargetFrameworks>
+    <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
+    <RootNamespace>DiscordRpcExample</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <BaseOutputPath>..\Build\</BaseOutputPath>
+    <Company>Sefinek Inc.</Company>
+    <Copyright>© 2022–2025 Lachee, Sefinek. All rights reserved.</Copyright>
+    <AssemblyName>Discord RPC Example</AssemblyName>
+    <Version>2.2.3.1</Version>
+    <NeutralLanguage>en</NeutralLanguage>
+    <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+    <Title>$(AssemblyName)</Title>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>none</DebugType>
+    <IsPublishable>False</IsPublishable>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <IsPublishable>False</IsPublishable>
+    <WarningsAsErrors />
   </PropertyGroup>
 
   <ItemGroup>

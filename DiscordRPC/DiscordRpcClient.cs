@@ -15,8 +15,9 @@ namespace DiscordRPC;
 /// </summary>
 public sealed class DiscordRpcClient : IDisposable
 {
-	private readonly RpcConnection _connection;
 	private readonly object _sync = new();
+
+	private readonly RpcConnection connection;
 	private bool _shutdownOnly = true;
 
 	/// <summary>
@@ -26,7 +27,7 @@ public sealed class DiscordRpcClient : IDisposable
 	///         Discord Canary is most likely on pipe 1.
 	///     </para>
 	/// </summary>
-	public int TargetPipe { get; }
+	private int TargetPipe { get; }
 
 	/// <summary>
 	///     The current presence that the client has. Gets set with <see cref="SetPresence(RichPresence)" /> and updated on
@@ -70,7 +71,7 @@ public sealed class DiscordRpcClient : IDisposable
 		set
 		{
 			_shutdownOnly = value;
-			if (_connection != null) _connection.ShutdownOnly = value;
+			if (connection != null) connection.ShutdownOnly = value;
 		}
 	}
 
@@ -98,13 +99,13 @@ public sealed class DiscordRpcClient : IDisposable
 		if (IsDisposed)
 			throw new ObjectDisposedException("Discord IPC Client");
 
-		if (_connection == null)
+		if (connection == null)
 			throw new ObjectDisposedException("Connection", "Cannot initialize as the connection has been deinitialized");
 
 		if (!IsInitialized)
 			throw new UninitializedException();
 
-		_connection.EnqueueCommand(new RespondCommand { Accept = acceptRequest, UserID = request.User.ID.ToString() });
+		connection.EnqueueCommand(new RespondCommand { Accept = acceptRequest, UserID = request.User.ID.ToString() });
 	}
 
 	/// <summary>
@@ -116,7 +117,7 @@ public sealed class DiscordRpcClient : IDisposable
 		if (IsDisposed)
 			throw new ObjectDisposedException("Discord IPC Client");
 
-		if (_connection == null)
+		if (connection == null)
 			throw new ObjectDisposedException("Connection", "Cannot initialize as the connection has been deinitialized");
 
 		if (!IsInitialized)
@@ -127,7 +128,7 @@ public sealed class DiscordRpcClient : IDisposable
 		{
 			//Clear the presence
 			if (!SkipIdenticalPresence || CurrentPresence != null)
-				_connection.EnqueueCommand(new PresenceCommand { PID = ProcessID, Presence = null });
+				connection.EnqueueCommand(new PresenceCommand { PID = ProcessID, Presence = null });
 		}
 		else
 		{
@@ -144,7 +145,7 @@ public sealed class DiscordRpcClient : IDisposable
 
 			//Send the presence, but only if we are not skipping
 			if (!SkipIdenticalPresence || !presence.Matches(CurrentPresence))
-				_connection.EnqueueCommand(new PresenceCommand { PID = ProcessID, Presence = presence.Clone() });
+				connection.EnqueueCommand(new PresenceCommand { PID = ProcessID, Presence = presence.Clone() });
 		}
 
 		//Update our local store
@@ -165,7 +166,7 @@ public sealed class DiscordRpcClient : IDisposable
 		if (!IsInitialized)
 			throw new UninitializedException();
 
-		if (_connection == null)
+		if (connection == null)
 			throw new ObjectDisposedException("Connection", "Cannot initialize as the connection has been deinitialized");
 
 		//Just a wrapper function for sending null
@@ -192,7 +193,7 @@ public sealed class DiscordRpcClient : IDisposable
 	///     Attempts to initalize a connection to the Discord IPC.
 	/// </summary>
 	/// <returns></returns>
-	public void Initialize()
+	public bool Initialize()
 	{
 		if (IsDisposed)
 			throw new ObjectDisposedException("Discord IPC Client");
@@ -200,10 +201,10 @@ public sealed class DiscordRpcClient : IDisposable
 		if (IsInitialized)
 			throw new UninitializedException("Cannot initialize a client that is already initialized");
 
-		if (_connection == null)
+		if (connection == null)
 			throw new ObjectDisposedException("Connection", "Cannot initialize as the connection has been deinitialized");
 
-		IsInitialized = _connection.AttemptConnection();
+		return IsInitialized = connection.AttemptConnection();
 	}
 
 	/// <summary>
@@ -214,7 +215,7 @@ public sealed class DiscordRpcClient : IDisposable
 		if (!IsInitialized)
 			throw new UninitializedException("Cannot deinitialize a client that has not been initalized.");
 
-		_connection.Close();
+		connection.Close();
 		IsInitialized = false;
 	}
 
@@ -264,7 +265,7 @@ public sealed class DiscordRpcClient : IDisposable
 		set
 		{
 			_logger = value;
-			if (_connection != null) _connection.Logger = value;
+			if (connection != null) connection.Logger = value;
 		}
 	}
 
@@ -278,7 +279,7 @@ public sealed class DiscordRpcClient : IDisposable
 	/// <summary>
 	///     Skips sending presences that are identical to the current one.
 	/// </summary>
-	private bool SkipIdenticalPresence { get; }
+	public bool SkipIdenticalPresence { get; set; }
 
 	#endregion
 
@@ -435,16 +436,17 @@ public sealed class DiscordRpcClient : IDisposable
 		_logger = logger ?? new NullLogger();
 
 		//Create the RPC client, giving it the important details
-		_connection = new RpcConnection(ApplicationID, ProcessID, TargetPipe, client ?? new ManagedNamedPipeClient(), autoEvents ? 0 : 128U)
+		connection = new RpcConnection(ApplicationID, ProcessID, TargetPipe, client ?? new ManagedNamedPipeClient(), autoEvents ? 0 : 128U)
 		{
 			ShutdownOnly = _shutdownOnly,
 			Logger = _logger
 		};
 
 		//Subscribe to its event
-		_connection.OnRpcMessage += (sender, msg) =>
+		connection.OnRpcMessage += (sender, msg) =>
 		{
-			OnRpcMessage?.Invoke(this, msg);
+			if (OnRpcMessage != null)
+				OnRpcMessage.Invoke(this, msg);
 
 			if (AutoEvents)
 				ProcessMessage(msg);
@@ -472,7 +474,7 @@ public sealed class DiscordRpcClient : IDisposable
 		}
 
 		//Dequeue all the messages and process them
-		IMessage[] messages = _connection.DequeueMessages();
+		IMessage[] messages = connection.DequeueMessages();
 		foreach (IMessage message in messages) ProcessMessage(message);
 
 		//Finally, return the messages
@@ -486,14 +488,13 @@ public sealed class DiscordRpcClient : IDisposable
 	private void ProcessMessage(IMessage message)
 	{
 		if (message == null) return;
-
 		switch (message.Type)
 		{
 			//We got a update, so we will update our current presence
 			case MessageType.PresenceUpdate:
 				lock (_sync)
 				{
-					PresenceMessage pm = message as PresenceMessage;
+					PresenceMessage? pm = message as PresenceMessage;
 					if (pm != null)
 					{
 						//We need to merge these presences together
@@ -509,13 +510,14 @@ public sealed class DiscordRpcClient : IDisposable
 					}
 				}
 
-				OnPresenceUpdate.Invoke(this, message as PresenceMessage);
+				if (OnPresenceUpdate != null)
+					OnPresenceUpdate.Invoke(this, message as PresenceMessage);
 
 				break;
 
 			//Update our configuration
 			case MessageType.Ready:
-				ReadyMessage rm = message as ReadyMessage;
+				ReadyMessage? rm = message as ReadyMessage;
 				if (rm != null)
 				{
 					lock (_sync)
@@ -528,16 +530,19 @@ public sealed class DiscordRpcClient : IDisposable
 					SynchronizeState();
 				}
 
-				OnReady.Invoke(this, message as ReadyMessage);
+				if (OnReady != null)
+					OnReady.Invoke(this, message as ReadyMessage);
 
 				break;
 
 			case MessageType.Close:
-				OnClose.Invoke(this, message as CloseMessage);
+				if (OnClose != null)
+					OnClose.Invoke(this, message as CloseMessage);
 				break;
 
 			case MessageType.Error:
-				OnError.Invoke(this, message as ErrorMessage);
+				if (OnError != null)
+					OnError.Invoke(this, message as ErrorMessage);
 				break;
 
 			//Update the request's CDN for the avatar helpers
@@ -545,49 +550,56 @@ public sealed class DiscordRpcClient : IDisposable
 				if (Configuration != null)
 				{
 					//Update the User object within the join request if the current Cdn
-					JoinRequestMessage jrm = message as JoinRequestMessage;
+					JoinRequestMessage? jrm = message as JoinRequestMessage;
 					if (jrm != null) jrm.User.SetConfiguration(Configuration);
 				}
 
-				OnJoinRequested.Invoke(this, message as JoinRequestMessage);
+				if (OnJoinRequested != null)
+					OnJoinRequested.Invoke(this, message as JoinRequestMessage);
 				break;
 
 			case MessageType.Subscribe:
 				lock (_sync)
 				{
-					SubscribeMessage sub = message as SubscribeMessage;
+					SubscribeMessage? sub = message as SubscribeMessage;
 					Subscription |= sub.Event;
 				}
 
-				OnSubscribe.Invoke(this, message as SubscribeMessage);
+				if (OnSubscribe != null)
+					OnSubscribe.Invoke(this, message as SubscribeMessage);
 
 				break;
 
 			case MessageType.Unsubscribe:
 				lock (_sync)
 				{
-					UnsubscribeMessage unsub = message as UnsubscribeMessage;
+					UnsubscribeMessage? unsub = message as UnsubscribeMessage;
 					Subscription &= ~unsub.Event;
 				}
 
-				OnUnsubscribe.Invoke(this, message as UnsubscribeMessage);
+				if (OnUnsubscribe != null)
+					OnUnsubscribe.Invoke(this, message as UnsubscribeMessage);
 
 				break;
 
 			case MessageType.Join:
-				OnJoin.Invoke(this, message as JoinMessage);
+				if (OnJoin != null)
+					OnJoin.Invoke(this, message as JoinMessage);
 				break;
 
 			case MessageType.Spectate:
-				OnSpectate.Invoke(this, message as SpectateMessage);
+				if (OnSpectate != null)
+					OnSpectate.Invoke(this, message as SpectateMessage);
 				break;
 
 			case MessageType.ConnectionEstablished:
-				OnConnectionEstablished.Invoke(this, message as ConnectionEstablishedMessage);
+				if (OnConnectionEstablished != null)
+					OnConnectionEstablished.Invoke(this, message as ConnectionEstablishedMessage);
 				break;
 
 			case MessageType.ConnectionFailed:
-				OnConnectionFailed.Invoke(this, message as ConnectionFailedMessage);
+				if (OnConnectionFailed != null)
+					OnConnectionFailed.Invoke(this, message as ConnectionFailedMessage);
 				break;
 
 			//We got a message we dont know what to do with.
@@ -801,7 +813,7 @@ public sealed class DiscordRpcClient : IDisposable
 	/// </summary>
 	/// <param name="time">The new time for the start</param>
 	/// <returns>Updated Rich Presence</returns>
-	public RichPresence UpdateStartTime(DateTime time)
+	private RichPresence UpdateStartTime(DateTime time)
 	{
 		return Update(p =>
 		{
@@ -943,7 +955,7 @@ public sealed class DiscordRpcClient : IDisposable
 		if (!IsInitialized)
 			throw new UninitializedException();
 
-		if (_connection == null)
+		if (connection == null)
 			throw new ObjectDisposedException("Connection", "Cannot initialize as the connection has been deinitialized");
 
 		//We dont have the Uri Scheme registered, we should throw a exception to tell the user.
@@ -952,13 +964,13 @@ public sealed class DiscordRpcClient : IDisposable
 
 		//Add the subscribe command to be sent when the connection is able too
 		if ((type & EventType.Spectate) == EventType.Spectate)
-			_connection.EnqueueCommand(new SubscribeCommand { Event = ServerEvent.ActivitySpectate, IsUnsubscribe = isUnsubscribe });
+			connection.EnqueueCommand(new SubscribeCommand { Event = ServerEvent.ActivitySpectate, IsUnsubscribe = isUnsubscribe });
 
 		if ((type & EventType.Join) == EventType.Join)
-			_connection.EnqueueCommand(new SubscribeCommand { Event = ServerEvent.ActivityJoin, IsUnsubscribe = isUnsubscribe });
+			connection.EnqueueCommand(new SubscribeCommand { Event = ServerEvent.ActivityJoin, IsUnsubscribe = isUnsubscribe });
 
 		if ((type & EventType.JoinRequest) == EventType.JoinRequest)
-			_connection.EnqueueCommand(new SubscribeCommand { Event = ServerEvent.ActivityJoinRequest, IsUnsubscribe = isUnsubscribe });
+			connection.EnqueueCommand(new SubscribeCommand { Event = ServerEvent.ActivityJoinRequest, IsUnsubscribe = isUnsubscribe });
 	}
 
 	#endregion
