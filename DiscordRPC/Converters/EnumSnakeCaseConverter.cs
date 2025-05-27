@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Newtonsoft.Json;
 
 namespace DiscordRPC.Converters;
@@ -42,7 +42,7 @@ internal class EnumSnakeCaseConverter : JsonConverter
 	}
 
 
-	public bool TryParseEnum(Type enumType, string str, out object obj)
+	private bool TryParseEnum(Type enumType, string str, out object obj)
 	{
 		//Make sure the string isn;t null
 		if (str == null)

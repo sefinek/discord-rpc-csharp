@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 
 namespace DiscordRPC.Helper;
 
@@ -51,7 +51,7 @@ public static class StringTools
 		if (str == null) return null;
 
 		return str.ToLowerInvariant()
-			.Split(new[] { "_", " " }, StringSplitOptions.RemoveEmptyEntries)
+			.Split(["_", " "], StringSplitOptions.RemoveEmptyEntries)
 			.Select(s => char.ToUpper(s[0]) + s.Substring(1, s.Length - 1))
 			.Aggregate(string.Empty, (s1, s2) => s1 + s2);
 	}

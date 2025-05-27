@@ -1,4 +1,4 @@
-﻿namespace DiscordRPC.Helper;
+namespace DiscordRPC.Helper;
 
 internal class BackoffDelay
 {
@@ -10,7 +10,7 @@ internal class BackoffDelay
 	{
 	}
 
-	public BackoffDelay(int min, int max, Random random)
+	private BackoffDelay(int min, int max, Random random)
 	{
 		Minimum = min;
 		Maximum = max;
@@ -23,12 +23,12 @@ internal class BackoffDelay
 	/// <summary>
 	///     The maximum time the backoff can reach
 	/// </summary>
-	public int Maximum { get; }
+	private int Maximum { get; }
 
 	/// <summary>
 	///     The minimum time the backoff can start at
 	/// </summary>
-	public int Minimum { get; }
+	private int Minimum { get; }
 
 	/// <summary>
 	///     The current time of the backoff

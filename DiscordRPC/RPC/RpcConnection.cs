@@ -18,12 +18,12 @@ internal class RpcConnection : IDisposable
 	/// <summary>
 	///     Version of the RPC Protocol
 	/// </summary>
-	public static readonly int VERSION = 1;
+	private static readonly int VERSION = 1;
 
 	/// <summary>
 	///     The rate of poll to the discord pipe.
 	/// </summary>
-	public static readonly int POLL_RATE = 1000;
+	private static readonly int POLL_RATE = 1000;
 
 	/// <summary>
 	///     Should we send a null presence on the fairwells?

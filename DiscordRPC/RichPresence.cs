@@ -222,13 +222,14 @@ public class BaseRichPresence
 	/// <returns></returns>
 	public RichPresence ToRichPresence()
 	{
-		RichPresence presence = new();
-		presence.State = State;
-		presence.Details = Details;
-		presence.Type = Type;
-
-		presence.Party = !HasParty() ? Party : null;
-		presence.Secrets = !HasSecrets() ? Secrets : null;
+		RichPresence presence = new()
+		{
+			State = State,
+			Details = Details,
+			Type = Type,
+			Party = !HasParty() ? Party : null,
+			Secrets = !HasSecrets() ? Secrets : null
+		};
 
 		if (HasAssets())
 			presence.Assets = new Assets
@@ -240,12 +241,11 @@ public class BaseRichPresence
 				LargeImageText = Assets.LargeImageText
 			};
 
-		if (HasTimestamps())
-		{
-			presence.Timestamps = new Timestamps();
-			if (Timestamps.Start.HasValue) presence.Timestamps.Start = Timestamps.Start;
-			if (Timestamps.End.HasValue) presence.Timestamps.End = Timestamps.End;
-		}
+		if (!HasTimestamps()) return presence;
+
+		presence.Timestamps = new Timestamps();
+		if (Timestamps.Start.HasValue) presence.Timestamps.Start = Timestamps.Start;
+		if (Timestamps.End.HasValue) presence.Timestamps.End = Timestamps.End;
 
 		return presence;
 	}
@@ -763,7 +763,7 @@ public class Party
 		{
 			//see issue https://github.com/discordapp/discord-rpc/issues/111
 			int size = Math.Max(1, Size);
-			return new[] { size, Math.Max(size, Max) };
+			return [size, Math.Max(size, Max)];
 		}
 
 		set
@@ -871,7 +871,7 @@ public sealed class RichPresence : BaseRichPresence
 	/// <returns></returns>
 	public bool HasButtons()
 	{
-		return Buttons != null && Buttons.Length > 0;
+		return Buttons is { Length: > 0 };
 	}
 
 	/// <summary>

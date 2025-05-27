@@ -1,4 +1,4 @@
-﻿#if NETSTANDARD1_1_OR_GREATER
+#if NETSTANDARD1_1_OR_GREATER
 #define USE_RUNTIME_INFO
 #endif
 
@@ -102,7 +102,7 @@ internal class UriSchemeRegister
 	///     Gets the FileName for the currently executing application
 	/// </summary>
 	/// <returns></returns>
-	public static string GetApplicationLocation()
+	private static string GetApplicationLocation()
 	{
 		return Process.GetCurrentProcess().MainModule.FileName;
 	}

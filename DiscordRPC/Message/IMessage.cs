@@ -1,4 +1,4 @@
-﻿namespace DiscordRPC.Message;
+namespace DiscordRPC.Message;
 
 /// <summary>
 ///     Messages received from discord.
@@ -8,7 +8,7 @@ public abstract class IMessage
 	/// <summary>
 	///     Creates a new instance of the message
 	/// </summary>
-	public IMessage()
+	protected IMessage()
 	{
 		TimeCreated = DateTime.Now;
 	}

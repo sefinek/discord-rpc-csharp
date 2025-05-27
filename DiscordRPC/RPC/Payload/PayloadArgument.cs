@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace DiscordRPC.RPC.Payload;
@@ -36,7 +36,7 @@ internal class ArgumentPayload : IPayload
 	///     Sets the obejct stored within the data.
 	/// </summary>
 	/// <param name="obj"></param>
-	public void SetObject(object obj)
+	private void SetObject(object obj)
 	{
 		Arguments = JObject.FromObject(obj);
 	}

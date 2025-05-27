@@ -176,7 +176,7 @@ public sealed class DiscordRpcClient : IDisposable
 	///     Resends the current presence and subscription. This is used when Ready is called to keep the current state within
 	///     discord.
 	/// </summary>
-	public void SynchronizeState()
+	private void SynchronizeState()
 	{
 		//Cannot sync over uninitialized connection
 		if (!IsInitialized)
@@ -192,7 +192,7 @@ public sealed class DiscordRpcClient : IDisposable
 	///     Attempts to initalize a connection to the Discord IPC.
 	/// </summary>
 	/// <returns></returns>
-	public bool Initialize()
+	public void Initialize()
 	{
 		if (IsDisposed)
 			throw new ObjectDisposedException("Discord IPC Client");
@@ -203,13 +203,13 @@ public sealed class DiscordRpcClient : IDisposable
 		if (_connection == null)
 			throw new ObjectDisposedException("Connection", "Cannot initialize as the connection has been deinitialized");
 
-		return IsInitialized = _connection.AttemptConnection();
+		IsInitialized = _connection.AttemptConnection();
 	}
 
 	/// <summary>
 	///     Attempts to disconnect and deinitialize the IPC connection while retaining the settings.
 	/// </summary>
-	public void Deinitialize()
+	private void Deinitialize()
 	{
 		if (!IsInitialized)
 			throw new UninitializedException("Cannot deinitialize a client that has not been initalized.");
@@ -225,12 +225,12 @@ public sealed class DiscordRpcClient : IDisposable
 	///     fail.
 	///     <para>To register a URI Scheme, call <see cref="RegisterUriScheme(string, string)" />.</para>
 	/// </summary>
-	public bool HasRegisteredUriScheme { get; private set; }
+	private bool HasRegisteredUriScheme { get; set; }
 
 	/// <summary>
 	///     Gets the Application ID of the RPC Client.
 	/// </summary>
-	public string ApplicationID { get; }
+	private string ApplicationID { get; }
 
 	/// <summary>
 	///     Gets the Steam ID of the RPC Client. This value can be null if none was supplied.
@@ -241,7 +241,7 @@ public sealed class DiscordRpcClient : IDisposable
 	///     Gets the ID of the process used to run the RPC Client. Discord tracks this process ID and waits for its
 	///     termination. Defaults to the current application process ID.
 	/// </summary>
-	public int ProcessID { get; }
+	private int ProcessID { get; }
 
 	/// <summary>
 	///     The maximum size of the message queue received from Discord.
@@ -273,12 +273,12 @@ public sealed class DiscordRpcClient : IDisposable
 	/// <summary>
 	///     Indicates if the client will automatically invoke the events without <see cref="Invoke" /> having to be called.
 	/// </summary>
-	public bool AutoEvents { get; }
+	private bool AutoEvents { get; }
 
 	/// <summary>
 	///     Skips sending presences that are identical to the current one.
 	/// </summary>
-	public bool SkipIdenticalPresence { get; set; }
+	private bool SkipIdenticalPresence { get; }
 
 	#endregion
 
@@ -444,8 +444,7 @@ public sealed class DiscordRpcClient : IDisposable
 		//Subscribe to its event
 		_connection.OnRpcMessage += (sender, msg) =>
 		{
-			if (OnRpcMessage != null)
-				OnRpcMessage.Invoke(this, msg);
+			OnRpcMessage?.Invoke(this, msg);
 
 			if (AutoEvents)
 				ProcessMessage(msg);
@@ -474,12 +473,7 @@ public sealed class DiscordRpcClient : IDisposable
 
 		//Dequeue all the messages and process them
 		IMessage[] messages = _connection.DequeueMessages();
-		for (int i = 0; i < messages.Length; i++)
-		{
-			//Do a bit of pre-processing
-			IMessage message = messages[i];
-			ProcessMessage(message);
-		}
+		foreach (IMessage message in messages) ProcessMessage(message);
 
 		//Finally, return the messages
 		return messages;
@@ -492,6 +486,7 @@ public sealed class DiscordRpcClient : IDisposable
 	private void ProcessMessage(IMessage message)
 	{
 		if (message == null) return;
+
 		switch (message.Type)
 		{
 			//We got a update, so we will update our current presence
@@ -514,8 +509,7 @@ public sealed class DiscordRpcClient : IDisposable
 					}
 				}
 
-				if (OnPresenceUpdate != null)
-					OnPresenceUpdate.Invoke(this, message as PresenceMessage);
+				OnPresenceUpdate.Invoke(this, message as PresenceMessage);
 
 				break;
 
@@ -534,19 +528,16 @@ public sealed class DiscordRpcClient : IDisposable
 					SynchronizeState();
 				}
 
-				if (OnReady != null)
-					OnReady.Invoke(this, message as ReadyMessage);
+				OnReady.Invoke(this, message as ReadyMessage);
 
 				break;
 
 			case MessageType.Close:
-				if (OnClose != null)
-					OnClose.Invoke(this, message as CloseMessage);
+				OnClose.Invoke(this, message as CloseMessage);
 				break;
 
 			case MessageType.Error:
-				if (OnError != null)
-					OnError.Invoke(this, message as ErrorMessage);
+				OnError.Invoke(this, message as ErrorMessage);
 				break;
 
 			//Update the request's CDN for the avatar helpers
@@ -558,8 +549,7 @@ public sealed class DiscordRpcClient : IDisposable
 					if (jrm != null) jrm.User.SetConfiguration(Configuration);
 				}
 
-				if (OnJoinRequested != null)
-					OnJoinRequested.Invoke(this, message as JoinRequestMessage);
+				OnJoinRequested.Invoke(this, message as JoinRequestMessage);
 				break;
 
 			case MessageType.Subscribe:
@@ -569,8 +559,7 @@ public sealed class DiscordRpcClient : IDisposable
 					Subscription |= sub.Event;
 				}
 
-				if (OnSubscribe != null)
-					OnSubscribe.Invoke(this, message as SubscribeMessage);
+				OnSubscribe.Invoke(this, message as SubscribeMessage);
 
 				break;
 
@@ -581,29 +570,24 @@ public sealed class DiscordRpcClient : IDisposable
 					Subscription &= ~unsub.Event;
 				}
 
-				if (OnUnsubscribe != null)
-					OnUnsubscribe.Invoke(this, message as UnsubscribeMessage);
+				OnUnsubscribe.Invoke(this, message as UnsubscribeMessage);
 
 				break;
 
 			case MessageType.Join:
-				if (OnJoin != null)
-					OnJoin.Invoke(this, message as JoinMessage);
+				OnJoin.Invoke(this, message as JoinMessage);
 				break;
 
 			case MessageType.Spectate:
-				if (OnSpectate != null)
-					OnSpectate.Invoke(this, message as SpectateMessage);
+				OnSpectate.Invoke(this, message as SpectateMessage);
 				break;
 
 			case MessageType.ConnectionEstablished:
-				if (OnConnectionEstablished != null)
-					OnConnectionEstablished.Invoke(this, message as ConnectionEstablishedMessage);
+				OnConnectionEstablished.Invoke(this, message as ConnectionEstablishedMessage);
 				break;
 
 			case MessageType.ConnectionFailed:
-				if (OnConnectionFailed != null)
-					OnConnectionFailed.Invoke(this, message as ConnectionFailedMessage);
+				OnConnectionFailed.Invoke(this, message as ConnectionFailedMessage);
 				break;
 
 			//We got a message we dont know what to do with.
@@ -622,7 +606,7 @@ public sealed class DiscordRpcClient : IDisposable
 	/// </summary>
 	/// <param name="func">Delegate used to update the rich presence</param>
 	/// <returns>Updated Rich Presence</returns>
-	public RichPresence Update(Action<RichPresence> func)
+	private RichPresence Update(Action<RichPresence> func)
 	{
 		if (!IsInitialized)
 			throw new UninitializedException();
@@ -842,7 +826,7 @@ public sealed class DiscordRpcClient : IDisposable
 	/// </summary>
 	/// <param name="time">The new time for the end</param>
 	/// <returns>Updated Rich Presence</returns>
-	public RichPresence UpdateEndTime(DateTime time)
+	private RichPresence UpdateEndTime(DateTime time)
 	{
 		return Update(p =>
 		{
