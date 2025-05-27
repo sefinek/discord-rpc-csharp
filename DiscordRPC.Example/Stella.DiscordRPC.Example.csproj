@@ -6,6 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DiscordRPC\DiscordRPC.csproj" />
+    <ProjectReference Include="..\DiscordRPC\Stella.DiscordRPC.csproj" />
   </ItemGroup>
 </Project>
