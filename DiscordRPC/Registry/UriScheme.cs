@@ -2,64 +2,65 @@
 #define USE_RUNTIME_INFO
 #endif
 
-using DiscordRPC.Logging;
 using System;
 using System.Diagnostics;
+using DiscordRPC.Logging;
 #if USE_RUNTIME_INFO
 using System.Runtime.InteropServices;
 #endif
 
-namespace DiscordRPC.Registry
+namespace DiscordRPC.Registry;
+
+internal class UriSchemeRegister
 {
-    internal class UriSchemeRegister
+	private readonly ILogger _logger;
+
+	public UriSchemeRegister(ILogger logger, string applicationID, string steamAppID = null, string executable = null)
 	{
-        /// <summary>
-        /// The ID of the Discord App to register
-        /// </summary>
-        public string ApplicationID { get; set; }
+		_logger = logger;
+		ApplicationID = applicationID.Trim();
+		SteamAppID = steamAppID != null ? steamAppID.Trim() : null;
+		ExecutablePath = executable ?? GetApplicationLocation();
+	}
 
-        /// <summary>
-        /// Optional Steam App ID to register. If given a value, then the game will launch through steam instead of Discord.
-        /// </summary>
-        public string SteamAppID { get; set; }
+	/// <summary>
+	///     The ID of the Discord App to register
+	/// </summary>
+	public string ApplicationID { get; set; }
 
-        /// <summary>
-        /// Is this register using steam?
-        /// </summary>
-        public bool UsingSteamApp { get { return !string.IsNullOrEmpty(SteamAppID) && SteamAppID != ""; } }
+	/// <summary>
+	///     Optional Steam App ID to register. If given a value, then the game will launch through steam instead of Discord.
+	/// </summary>
+	public string SteamAppID { get; set; }
 
-        /// <summary>
-        /// The full executable path of the application.
-        /// </summary>
-        public string ExecutablePath { get; set; }
+	/// <summary>
+	///     Is this register using steam?
+	/// </summary>
+	public bool UsingSteamApp => !string.IsNullOrEmpty(SteamAppID) && SteamAppID != "";
 
-        private ILogger _logger;
-        public UriSchemeRegister(ILogger logger, string applicationID, string steamAppID = null, string executable = null)
-        {
-            _logger = logger;
-            ApplicationID = applicationID.Trim();
-            SteamAppID = steamAppID != null ? steamAppID.Trim() : null;
-            ExecutablePath = executable ?? GetApplicationLocation();
-        }
+	/// <summary>
+	///     The full executable path of the application.
+	/// </summary>
+	public string ExecutablePath { get; set; }
 
-        /// <summary>
-        /// Registers the URI scheme, using the correct creator for the correct platform
-        /// </summary>
-        public bool RegisterUriScheme()
-        {
-            //Get the creator
-            IUriSchemeCreator creator = null;
-            switch(Environment.OSVersion.Platform)
-            {
-                case PlatformID.Win32Windows:
-                case PlatformID.Win32S:
-                case PlatformID.Win32NT:
-                case PlatformID.WinCE:
-                    _logger.Trace("Creating Windows Scheme Creator");
-                    creator = new WindowsUriSchemeCreator(_logger);
-                    break;
+	/// <summary>
+	///     Registers the URI scheme, using the correct creator for the correct platform
+	/// </summary>
+	public bool RegisterUriScheme()
+	{
+		//Get the creator
+		IUriSchemeCreator creator = null;
+		switch (Environment.OSVersion.Platform)
+		{
+			case PlatformID.Win32Windows:
+			case PlatformID.Win32S:
+			case PlatformID.Win32NT:
+			case PlatformID.WinCE:
+				_logger.Trace("Creating Windows Scheme Creator");
+				creator = new WindowsUriSchemeCreator(_logger);
+				break;
 
-                case PlatformID.Unix:
+			case PlatformID.Unix:
 #if USE_RUNTIME_INFO
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                     {
@@ -69,42 +70,41 @@ namespace DiscordRPC.Registry
                     else
                     {
 #endif
-                        _logger.Trace("Creating Unix Scheme Creator");
-                        creator = new UnixUriSchemeCreator(_logger);
+				_logger.Trace("Creating Unix Scheme Creator");
+				creator = new UnixUriSchemeCreator(_logger);
 #if USE_RUNTIME_INFO
                     }
 #endif
-                    break;
-                
+				break;
+
 #if !USE_RUNTIME_INFO
-                case PlatformID.MacOSX:
-                    _logger.Trace("Creating MacOSX Scheme Creator");
-                    creator = new MacUriSchemeCreator(_logger);
-                    break;
+			case PlatformID.MacOSX:
+				_logger.Trace("Creating MacOSX Scheme Creator");
+				creator = new MacUriSchemeCreator(_logger);
+				break;
 #endif
 
-                default:
-                    _logger.Error("Unkown Platform: {0}", Environment.OSVersion.Platform);
-                    throw new PlatformNotSupportedException("Platform does not support registration.");
-            }
+			default:
+				_logger.Error("Unkown Platform: {0}", Environment.OSVersion.Platform);
+				throw new PlatformNotSupportedException("Platform does not support registration.");
+		}
 
-            //Regiser the app
-            if (creator.RegisterUriScheme(this))
-            {
-                _logger.Info("URI scheme registered.");
-                return true;
-            }
+		//Regiser the app
+		if (creator.RegisterUriScheme(this))
+		{
+			_logger.Info("URI scheme registered.");
+			return true;
+		}
 
-            return false;
-        }
+		return false;
+	}
 
-        /// <summary>
-        /// Gets the FileName for the currently executing application
-        /// </summary>
-        /// <returns></returns>
-        public static string GetApplicationLocation()
-        {
-            return Process.GetCurrentProcess().MainModule.FileName;
-        }
-    }
+	/// <summary>
+	///     Gets the FileName for the currently executing application
+	/// </summary>
+	/// <returns></returns>
+	public static string GetApplicationLocation()
+	{
+		return Process.GetCurrentProcess().MainModule.FileName;
+	}
 }

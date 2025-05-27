@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace DiscordRPC.Converters
+namespace DiscordRPC.Converters;
+
+internal class EnumValueAttribute : Attribute
 {
-	internal class EnumValueAttribute : Attribute
+	public EnumValueAttribute(string value)
 	{
-		public string Value { get; set; }
-		public EnumValueAttribute(string value)
-		{
-			this.Value = value;
-		}
+		Value = value;
 	}
+
+	public string Value { get; set; }
 }
