@@ -5,7 +5,7 @@
     <RootNamespace>DiscordRpcExample</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <BaseOutputPath>..\Build\</BaseOutputPath>
+    <BaseOutputPath>..\..\Build\</BaseOutputPath>
     <Company>Sefinek Inc.</Company>
     <Copyright>© 2025 Lachee, Sefinek. All rights reserved.</Copyright>
     <AssemblyName>Discord RPC Example</AssemblyName>
