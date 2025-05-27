@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>.net8</TargetFrameworks>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <TargetFrameworks>net8.0-windows10.0.26100.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

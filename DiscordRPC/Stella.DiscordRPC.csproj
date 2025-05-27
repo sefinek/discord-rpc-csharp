@@ -1,22 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net8</TargetFrameworks>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <NoWin32Manifest>true</NoWin32Manifest>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>D:\snk\discord.rpc.snk</AssemblyOriginatorKeyFile>
+    <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
+    <RootNamespace>DiscordRPC</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Stella.DiscordRPC</AssemblyName>
+    <Company>Sefinek Inc.</Company>
+    <Product>Discord RPC</Product>
+    <Copyright>© 2022–2025 Lachee, Sefinek. All rights reserved.</Copyright>
+    <Title>$(AssemblyName)</Title>
     <Version>2.0.0.0</Version>
-    <GenerateDocumentationFile>False</GenerateDocumentationFile>
-    <NeutralLanguage>en</NeutralLanguage>
+	<SignAssembly>true</SignAssembly>
+	<AssemblyOriginatorKeyFile>D:\snk\discord.rpc.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>none</DebugType>
+    <IsPublishable>False</IsPublishable>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>none</DebugType>
+    <IsPublishable>False</IsPublishable>
   </PropertyGroup>
 
   <ItemGroup>
