@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Diagnostics;
-using DiscordRPC.Events;
 using DiscordRPC.Exceptions;
 using DiscordRPC.IO;
 using DiscordRPC.Logging;
@@ -17,9 +16,8 @@ namespace DiscordRPC;
 /// </summary>
 public sealed class DiscordRpcClient : IDisposable
 {
+	private readonly RpcConnection _connection;
 	private readonly object _sync = new();
-
-	private readonly RpcConnection connection;
 	private bool _shutdownOnly = true;
 
 	/// <summary>
@@ -73,7 +71,7 @@ public sealed class DiscordRpcClient : IDisposable
 		set
 		{
 			_shutdownOnly = value;
-			if (connection != null) connection.ShutdownOnly = value;
+			if (_connection != null) _connection.ShutdownOnly = value;
 		}
 	}
 
@@ -101,13 +99,13 @@ public sealed class DiscordRpcClient : IDisposable
 		if (IsDisposed)
 			throw new ObjectDisposedException("Discord IPC Client");
 
-		if (connection == null)
+		if (_connection == null)
 			throw new ObjectDisposedException("Connection", "Cannot initialize as the connection has been deinitialized");
 
 		if (!IsInitialized)
 			throw new UninitializedException();
 
-		connection.EnqueueCommand(new RespondCommand { Accept = acceptRequest, UserID = request.User.ID.ToString() });
+		_connection.EnqueueCommand(new RespondCommand { Accept = acceptRequest, UserID = request.User.ID.ToString() });
 	}
 
 	/// <summary>
@@ -119,7 +117,7 @@ public sealed class DiscordRpcClient : IDisposable
 		if (IsDisposed)
 			throw new ObjectDisposedException("Discord IPC Client");
 
-		if (connection == null)
+		if (_connection == null)
 			throw new ObjectDisposedException("Connection", "Cannot initialize as the connection has been deinitialized");
 
 		if (!IsInitialized)
@@ -130,7 +128,7 @@ public sealed class DiscordRpcClient : IDisposable
 		{
 			//Clear the presence
 			if (!SkipIdenticalPresence || CurrentPresence != null)
-				connection.EnqueueCommand(new PresenceCommand { PID = ProcessID, Presence = null });
+				_connection.EnqueueCommand(new PresenceCommand { PID = ProcessID, Presence = null });
 		}
 		else
 		{
@@ -147,7 +145,7 @@ public sealed class DiscordRpcClient : IDisposable
 
 			//Send the presence, but only if we are not skipping
 			if (!SkipIdenticalPresence || !presence.Matches(CurrentPresence))
-				connection.EnqueueCommand(new PresenceCommand { PID = ProcessID, Presence = presence.Clone() });
+				_connection.EnqueueCommand(new PresenceCommand { PID = ProcessID, Presence = presence.Clone() });
 		}
 
 		//Update our local store
@@ -168,7 +166,7 @@ public sealed class DiscordRpcClient : IDisposable
 		if (!IsInitialized)
 			throw new UninitializedException();
 
-		if (connection == null)
+		if (_connection == null)
 			throw new ObjectDisposedException("Connection", "Cannot initialize as the connection has been deinitialized");
 
 		//Just a wrapper function for sending null
@@ -203,10 +201,10 @@ public sealed class DiscordRpcClient : IDisposable
 		if (IsInitialized)
 			throw new UninitializedException("Cannot initialize a client that is already initialized");
 
-		if (connection == null)
+		if (_connection == null)
 			throw new ObjectDisposedException("Connection", "Cannot initialize as the connection has been deinitialized");
 
-		return IsInitialized = connection.AttemptConnection();
+		return IsInitialized = _connection.AttemptConnection();
 	}
 
 	/// <summary>
@@ -217,7 +215,7 @@ public sealed class DiscordRpcClient : IDisposable
 		if (!IsInitialized)
 			throw new UninitializedException("Cannot deinitialize a client that has not been initalized.");
 
-		connection.Close();
+		_connection.Close();
 		IsInitialized = false;
 	}
 
@@ -267,7 +265,7 @@ public sealed class DiscordRpcClient : IDisposable
 		set
 		{
 			_logger = value;
-			if (connection != null) connection.Logger = value;
+			if (_connection != null) _connection.Logger = value;
 		}
 	}
 
@@ -438,14 +436,14 @@ public sealed class DiscordRpcClient : IDisposable
 		_logger = logger ?? new NullLogger();
 
 		//Create the RPC client, giving it the important details
-		connection = new RpcConnection(ApplicationID, ProcessID, TargetPipe, client ?? new ManagedNamedPipeClient(), autoEvents ? 0 : 128U)
+		_connection = new RpcConnection(ApplicationID, ProcessID, TargetPipe, client ?? new ManagedNamedPipeClient(), autoEvents ? 0 : 128U)
 		{
 			ShutdownOnly = _shutdownOnly,
 			Logger = _logger
 		};
 
 		//Subscribe to its event
-		connection.OnRpcMessage += (sender, msg) =>
+		_connection.OnRpcMessage += (sender, msg) =>
 		{
 			if (OnRpcMessage != null)
 				OnRpcMessage.Invoke(this, msg);
@@ -476,7 +474,7 @@ public sealed class DiscordRpcClient : IDisposable
 		}
 
 		//Dequeue all the messages and process them
-		IMessage[] messages = connection.DequeueMessages();
+		IMessage[] messages = _connection.DequeueMessages();
 		for (int i = 0; i < messages.Length; i++)
 		{
 			//Do a bit of pre-processing
@@ -962,7 +960,7 @@ public sealed class DiscordRpcClient : IDisposable
 		if (!IsInitialized)
 			throw new UninitializedException();
 
-		if (connection == null)
+		if (_connection == null)
 			throw new ObjectDisposedException("Connection", "Cannot initialize as the connection has been deinitialized");
 
 		//We dont have the Uri Scheme registered, we should throw a exception to tell the user.
@@ -971,13 +969,13 @@ public sealed class DiscordRpcClient : IDisposable
 
 		//Add the subscribe command to be sent when the connection is able too
 		if ((type & EventType.Spectate) == EventType.Spectate)
-			connection.EnqueueCommand(new SubscribeCommand { Event = ServerEvent.ActivitySpectate, IsUnsubscribe = isUnsubscribe });
+			_connection.EnqueueCommand(new SubscribeCommand { Event = ServerEvent.ActivitySpectate, IsUnsubscribe = isUnsubscribe });
 
 		if ((type & EventType.Join) == EventType.Join)
-			connection.EnqueueCommand(new SubscribeCommand { Event = ServerEvent.ActivityJoin, IsUnsubscribe = isUnsubscribe });
+			_connection.EnqueueCommand(new SubscribeCommand { Event = ServerEvent.ActivityJoin, IsUnsubscribe = isUnsubscribe });
 
 		if ((type & EventType.JoinRequest) == EventType.JoinRequest)
-			connection.EnqueueCommand(new SubscribeCommand { Event = ServerEvent.ActivityJoinRequest, IsUnsubscribe = isUnsubscribe });
+			_connection.EnqueueCommand(new SubscribeCommand { Event = ServerEvent.ActivityJoinRequest, IsUnsubscribe = isUnsubscribe });
 	}
 
 	#endregion

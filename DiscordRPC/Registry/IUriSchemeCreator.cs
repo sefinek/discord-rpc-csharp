@@ -1,4 +1,4 @@
-﻿namespace DiscordRPC.Registry;
+namespace DiscordRPC.Registry;
 
 internal interface IUriSchemeCreator
 {

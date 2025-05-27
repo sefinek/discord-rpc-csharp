@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using DiscordRPC.Logging;
 using Microsoft.Win32;
 
@@ -6,11 +6,11 @@ namespace DiscordRPC.Registry;
 
 internal class WindowsUriSchemeCreator : IUriSchemeCreator
 {
-	private readonly ILogger logger;
+	private readonly ILogger _logger;
 
 	public WindowsUriSchemeCreator(ILogger logger)
 	{
-		this.logger = logger;
+		_logger = logger;
 	}
 
 	public bool RegisterUriScheme(UriSchemeRegister register)
@@ -21,7 +21,7 @@ internal class WindowsUriSchemeCreator : IUriSchemeCreator
 		string location = register.ExecutablePath;
 		if (location == null)
 		{
-			logger.Error("Failed to register application because the location was null.");
+			_logger.Error("Failed to register application because the location was null.");
 			return false;
 		}
 
@@ -37,7 +37,7 @@ internal class WindowsUriSchemeCreator : IUriSchemeCreator
 			//Try to get the steam location. If found, set the command to a run steam instead.
 			string steam = GetSteamLocation();
 			if (steam != null)
-				command = string.Format("\"{0}\" steam://rungameid/{1}", steam, register.SteamAppID);
+				command = $"\"{steam}\" steam://rungameid/{register.SteamAppID}";
 		}
 
 		//Okay, now actually register it
@@ -70,19 +70,17 @@ internal class WindowsUriSchemeCreator : IUriSchemeCreator
 			}
 		}
 
-		logger.Trace("Registered {0}, {1}, {2}", scheme, friendlyName, command);
+		_logger.Trace("Registered {0}, {1}, {2}", scheme, friendlyName, command);
 	}
 
 	/// <summary>
 	///     Gets the current location of the steam client
 	/// </summary>
 	/// <returns></returns>
-	public string GetSteamLocation()
+	private string GetSteamLocation()
 	{
-		using (RegistryKey key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\\Valve\\Steam"))
-		{
-			if (key == null) return null;
-			return key.GetValue("SteamExe") as string;
-		}
+		using RegistryKey key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\\Valve\\Steam");
+		if (key == null) return null;
+		return key.GetValue("SteamExe") as string;
 	}
 }

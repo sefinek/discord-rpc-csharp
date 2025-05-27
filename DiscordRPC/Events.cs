@@ -1,6 +1,6 @@
-﻿using DiscordRPC.Message;
+using DiscordRPC.Message;
 
-namespace DiscordRPC.Events;
+namespace DiscordRPC;
 
 /// <summary>
 ///     Called when the Discord Client is ready to send and receive messages.

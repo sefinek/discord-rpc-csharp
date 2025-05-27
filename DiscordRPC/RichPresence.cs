@@ -1062,16 +1062,15 @@ public sealed class RichPresence : BaseRichPresence
 
 		//Check buttons
 		if ((Buttons == null) ^ (other.Buttons == null)) return false;
-		if (Buttons != null)
+		if (Buttons == null) return true;
+		if (Buttons.Length != other.Buttons.Length) return false;
+
+		for (int i = 0; i < Buttons.Length; i++)
 		{
-			if (Buttons.Length != other.Buttons.Length) return false;
-			for (int i = 0; i < Buttons.Length; i++)
-			{
-				Button a = Buttons[i];
-				Button b = other.Buttons[i];
-				if (a.Label != b.Label || a.Url != b.Url)
-					return false;
-			}
+			Button a = Buttons[i];
+			Button b = other.Buttons[i];
+			if (a.Label != b.Label || a.Url != b.Url)
+				return false;
 		}
 
 		return true;
