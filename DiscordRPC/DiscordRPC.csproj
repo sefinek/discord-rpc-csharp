@@ -1,11 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net8</TargetFrameworks>
-    <NuspecFile>DiscordRPC.nuspec</NuspecFile>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     <NoWin32Manifest>true</NoWin32Manifest>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\discord.rpc.snk</AssemblyOriginatorKeyFile>
