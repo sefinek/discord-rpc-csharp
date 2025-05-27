@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DiscordRPC.Exceptions;
+﻿namespace DiscordRPC.Exceptions;
 
 /// <summary>
 ///     A BadPresenceException is thrown when invalid, incompatible or conflicting properties and is unable to be sent.

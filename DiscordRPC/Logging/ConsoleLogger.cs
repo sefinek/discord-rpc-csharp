@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DiscordRPC.Logging;
+﻿namespace DiscordRPC.Logging;
 
 /// <summary>
 ///     Logs the outputs to the console using <see cref="Console.WriteLine()" />

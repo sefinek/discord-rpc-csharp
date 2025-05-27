@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DiscordRPC.Exceptions;
+﻿namespace DiscordRPC.Exceptions;
 
 /// <summary>
 ///     Thrown when an action is performed on a client that has not yet been initialized

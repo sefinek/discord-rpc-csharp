@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DiscordRPC.Exceptions;
+﻿namespace DiscordRPC.Exceptions;
 
 /// <summary>
 ///     A StringOutOfRangeException is thrown when the length of a string exceeds the allowed limit.

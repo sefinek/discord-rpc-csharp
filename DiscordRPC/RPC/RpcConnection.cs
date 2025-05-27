@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
 using DiscordRPC.Converters;
 using DiscordRPC.Helper;
 using DiscordRPC.IO;

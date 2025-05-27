@@ -1,4 +1,3 @@
-using System;
 using DiscordRPC.Logging;
 using Microsoft.Win32;
 

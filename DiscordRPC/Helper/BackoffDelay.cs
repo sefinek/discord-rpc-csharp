@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DiscordRPC.Helper;
+﻿namespace DiscordRPC.Helper;
 
 internal class BackoffDelay
 {

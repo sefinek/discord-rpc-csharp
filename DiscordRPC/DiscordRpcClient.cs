@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using DiscordRPC.Exceptions;
 using DiscordRPC.IO;

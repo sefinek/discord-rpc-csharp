@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DiscordRPC.Message;
+﻿namespace DiscordRPC.Message;
 
 /// <summary>
 ///     Messages received from discord.

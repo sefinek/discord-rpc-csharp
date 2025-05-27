@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DiscordRPC.Converters;
+﻿namespace DiscordRPC.Converters;
 
 internal class EnumValueAttribute : Attribute
 {

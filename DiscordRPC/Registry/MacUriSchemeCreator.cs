@@ -1,5 +1,4 @@
-﻿using System.IO;
-using DiscordRPC.Logging;
+﻿using DiscordRPC.Logging;
 
 namespace DiscordRPC.Registry;
 

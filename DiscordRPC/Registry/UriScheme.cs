@@ -2,7 +2,6 @@
 #define USE_RUNTIME_INFO
 #endif
 
-using System;
 using System.Diagnostics;
 using DiscordRPC.Logging;
 #if USE_RUNTIME_INFO
