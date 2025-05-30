@@ -252,7 +252,7 @@ internal static class Program
 		// == Sub to ready
 		// We are going to listen to the On Ready. Once we have it, we will tell the completion
 		//  source to continue with the result.
-		client.OnReady += (sender, msg) => { readyCompletionSource.SetResult(msg.User); };
+		client.OnReady += (_, msg) => { readyCompletionSource.SetResult(msg.User); };
 
 		// == Initialize
 		client.Initialize();

@@ -55,7 +55,7 @@ public sealed class DiscordRpcClient : IDisposable
 	/// <summary>
 	///     Represents if the client has been <see cref="Initialize" />
 	/// </summary>
-	public bool IsInitialized { get; private set; }
+	private bool IsInitialized { get; set; }
 
 	/// <summary>
 	///     Forces the connection to shutdown gracefully instead of just aborting the connection.
@@ -252,7 +252,7 @@ public sealed class DiscordRpcClient : IDisposable
 	/// <summary>
 	///     The dispose state of the client object.
 	/// </summary>
-	public bool IsDisposed { get; private set; }
+	private bool IsDisposed { get; set; }
 
 	/// <summary>
 	///     The logger used this client and its associated components. <see cref="ILogger" /> are not called safely and can

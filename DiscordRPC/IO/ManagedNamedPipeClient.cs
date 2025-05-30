@@ -1,4 +1,4 @@
-﻿using System.IO.Pipes;
+using System.IO.Pipes;
 using DiscordRPC.Logging;
 
 namespace DiscordRPC.IO;
@@ -450,7 +450,7 @@ public sealed class ManagedNamedPipeClient : INamedPipeClient
 	/// <param name="pipe">The pipe number.</param>
 	/// <param name="sandbox">The sandbox environment the pipe is in</param>
 	/// <returns></returns>
-	public static string GetPipeName(int pipe, string sandbox)
+	private static string GetPipeName(int pipe, string sandbox)
 	{
 		if (!IsUnix()) return sandbox + string.Format(PIPE_NAME, pipe);
 		return Path.Combine(GetTemporaryDirectory(), sandbox + string.Format(PIPE_NAME, pipe));
@@ -471,7 +471,7 @@ public sealed class ManagedNamedPipeClient : INamedPipeClient
 	///     sandboxed Discord, then it will return null.
 	/// </summary>
 	/// <returns></returns>
-	public static string GetPipeSandbox()
+	private static string GetPipeSandbox()
 	{
 		switch (Environment.OSVersion.Platform)
 		{
